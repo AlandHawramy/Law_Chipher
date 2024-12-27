@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شفرەکردنی دەق</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Noto Sans Arabic', 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color: #6366f1;
+            --input-bg: #334155;
+            --input-border: #475569;
+            --success-color: #22c55e;
+            --error-color: #ef4444;
+            --shadow-color: rgba(0, 0, 0, 0.25);
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--bg-secondary);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 700px;
+            padding: 28px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            position: relative;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--input-bg);
+            border: none;
+            color: var(--text-primary);
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .main-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--input-border);
+            border-radius: 10px;
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            background-color: var(--accent-color);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        .btn:disabled {
+            background-color: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        input:disabled, textarea:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: var(--input-bg);
+            border-radius: 10px;
+            word-wrap: break-word;
+        }
+
+        @media (max-width: 768px) {
+            .main-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            input, textarea, .btn {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="main-buttons" class="main-buttons">
+            <button class="btn" onclick="showSection('caesar')">Caesar</button>
+            <button class="btn" onclick="showSection('affine')">Affine</button>
+            <button class="btn" onclick="showSection('vigenere')">Vigenere</button>
+        </div>
+
+        <div id="caesar" class="section">
+            <button class="back-btn" onclick="returnToMain()">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <h2>Caesar Cipher</h2>
+            <div class="input-group">
+                <textarea id="caesar-text" placeholder="دەقەکە بنووسە" oninput="checkTextAreaInput('caesar')"></textarea><br>
+                <input type="number" id="caesar-key" placeholder="کلیل (x)" >
+                <button id="caesar-encrypt" class="btn" onclick="caesarEncrypt()" disabled>Encrypt</button>
+                <button id="caesar-decrypt" class="btn" onclick="caesarDecrypt()" disabled>Decrypt</button>
+            </div>
+            <div id="caesar-result" class="result"></div>
+        </div>
+
+        <div id="affine" class="section">
+            <button class="back-btn" onclick="returnToMain()">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <h2>Affine Cipher</h2>
+            <div class="input-group">
+                <textarea id="affine-text" placeholder="دەقەکە بنووسە" oninput="checkTextAreaInput('affine')"></textarea><br>
+                <input type="number" id="affine-key1" placeholder="کلیل 1 (a)" >
+                <input type="number" id="affine-key2" placeholder="کلیل 2 (b)" >
+                <button id="affine-encrypt" class="btn" onclick="affineEncrypt()" disabled>Encrypt</button>
+                <button id="affine-decrypt" class="btn" onclick="affineDecrypt()" disabled>Decrypt</button>
+            </div>
+            <div id="affine-result" class="result"></div>
+        </div>
+
+        <div id="vigenere" class="section">
+            <button class="back-btn" onclick="returnToMain()">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <h2>Vigenere Cipher</h2>
+            <div class="input-group">
+                <textarea id="vigenere-text" placeholder="دەقەکە بنووسە" oninput="checkTextAreaInput('vigenere')"></textarea><br>
+                <input type="text" id="vigenere-key" placeholder="کلیل" >
+                <button id="vigenere-encrypt" class="btn" onclick="vigenereEncrypt()" disabled>Encrypt</button>
+                <button id="vigenere-decrypt" class="btn" onclick="vigenereDecrypt()" disabled>Decrypt</button>
+            </div>
+            <div id="vigenere-result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        function checkTextAreaInput(type) {
+            const textarea = document.getElementById(`${type}-text`);
+            const encryptBtn = document.getElementById(`${type}-encrypt`);
+            encryptBtn.disabled = textarea.value.trim().length === 0;
+        }
+
+        function showSection(sectionId) {
+            document.getElementById('main-buttons').style.display = 'none';
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        function returnToMain() {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+                // Reset all inputs and buttons
+                const inputs = section.querySelectorAll('input, textarea');
+                inputs.forEach(input => {
+                    input.value = '';
+                    input.disabled = false;
+                });
+                const encryptBtn = section.querySelector('[id$="-encrypt"]');
+                const decryptBtn = section.querySelector('[id$="-decrypt"]');
+                if (encryptBtn && decryptBtn) {
+                    encryptBtn.disabled = true;
+                    decryptBtn.disabled = true;
+                }
+                const result = section.querySelector('.result');
+                if (result) result.textContent = '';
+            });
+            document.getElementById('main-buttons').style.display = 'grid';
+        }
+
+        function toggleInputs(type, disabled) {
+            const container = document.getElementById(type);
+            const inputs = container.querySelectorAll('input, textarea');
+            inputs.forEach(input => input.disabled = disabled);
+        }
+
+        // Caesar Cipher Functions
+        function caesarEncrypt() {
+            const text = document.getElementById('caesar-text').value.toUpperCase();
+            const key = parseInt(document.getElementById('caesar-key').value);
+            const result = caesar(text, key, true);
+            document.getElementById('caesar-result').textContent = result;
+            saveOriginalText('caesar-text', text);
+            
+            toggleInputs('caesar', true);
+            document.getElementById('caesar-encrypt').disabled = true;
+            document.getElementById('caesar-decrypt').disabled = false;
+        }
+
+        function caesarDecrypt() {
+            const text = document.getElementById('caesar-result').textContent;
+            if (!text) return;
+            const key = parseInt(document.getElementById('caesar-key').value);
+            const result = caesar(text, key, false);
+            document.getElementById('caesar-text').value = getOriginalText('caesar-text');
+            document.getElementById('caesar-result').textContent = result;
+            
+            toggleInputs('caesar', false);
+            document.getElementById('caesar-encrypt').disabled = false;
+            document.getElementById('caesar-decrypt').disabled = true;
+        }
+
+        function caesar(text, key, encrypt) {
+            return text.replace(/[A-Z]/g, char => {
+                const code = char.charCodeAt(0);
+                const shift = encrypt ? key : (26 - key);
+                return String.fromCharCode(((code - 65 + shift) % 26) + 65);
+            });
+        }
+
+        // Affine Cipher Functions
+        function affineEncrypt() {
+            const text = document.getElementById('affine-text').value.toUpperCase();
+            const a = parseInt(document.getElementById('affine-key1').value);
+            const b = parseInt(document.getElementById('affine-key2').value);
+            const result = affine(text, a, b, true);
+            document.getElementById('affine-result').textContent = result;
+            saveOriginalText('affine-text', text);
+            
+            toggleInputs('affine', true);
+            document.getElementById('affine-encrypt').disabled = true;
+            document.getElementById('affine-decrypt').disabled = false;
+        }
+
+        function affineDecrypt() {
+            const text = document.getElementById('affine-result').textContent;
+            if (!text) return;
+            const a = parseInt(document.getElementById('affine-key1').value);
+            const b = parseInt(document.getElementById('affine-key2').value);
+            const result = affine(text, a, b, false);
+            document.getElementById('affine-text').value = getOriginalText('affine-text');
+            document.getElementById('affine-result').textContent = result;
+            
+            toggleInputs('affine', false);
+            document.getElementById('affine-encrypt').disabled = false;
+            document.getElementById('affine-decrypt').disabled = true;
+        }
+
+        function affine(text, a, b, encrypt) {
+            const modInverse = (a) => {
+                for(let i = 1; i < 26; i++)
+                    if((a * i) % 26 === 1) return i;
+                return 1;
+            };
+
+            return text.replace(/[A-Z]/g, char => {
+                const x = char.charCodeAt(0) - 65;
+                let result;
+                if(encrypt) {
+                    result = (a * x + b) % 26;
+                } else {
+                    const aInv = modInverse(a);
+                    result = (aInv * (x - b + 26)) % 26;
+                }
+                return String.fromCharCode(result + 65);
+            });
+        }
+
+        // Vigenere Cipher Functions
+        function vigenereEncrypt() {
+            const text = document.getElementById('vigenere-text').value.toUpperCase();
+            const key = document.getElementById('vigenere-key').value.toUpperCase();
+            const result = vigenere(text, key, true);
+            document.getElementById('vigenere-result').textContent = result;
+            saveOriginalText('vigenere-text', text);
+            
+            toggleInputs('vigenere', true);
+            document.getElementById('vigenere-encrypt').disabled = true;
+            document.getElementById('vigenere-decrypt').disabled = false;
+        }
+
+        function vigenereDecrypt() {
+            const text = document.getElementById('vigenere-result').textContent;
+            if (!text) return;
+            const key = document.getElementById('vigenere-key').value.toUpperCase();
+            const result = vigenere(text, key, false);
+            document.getElementById('vigenere-text').value = getOriginalText('vigenere-text');
+            document.getElementById('vigenere-result').textContent = result;
+            
+            toggleInputs('vigenere', false);
+            document.getElementById('vigenere-encrypt').disabled = false;
+            document.getElementById('vigenere-decrypt').disabled = true;
+        }
+
+        function vigenere(text, key, encrypt) {
+            let result = '';
+            let keyIndex = 0;
+
+            for(let i = 0; i < text.length; i++) {
+                if(text[i].match(/[A-Z]/)) {
+                    const textChar = text[i].charCodeAt(0) - 65;
+                    const keyChar = key[keyIndex % key.length].charCodeAt(0) - 65;
+                    let newChar;
+                    
+                    if(encrypt) {
+                        newChar = (textChar + keyChar) % 26;
+                    } else {
+                        newChar = (textChar - keyChar + 26) % 26;
+                    }
+                    
+                    result += String.fromCharCode(newChar + 65);
+                    keyIndex++;
+                } else {
+                    result += text[i];
+                }
+            }
+            return result;
+        }
+
+        function saveOriginalText(id, text) {
+            sessionStorage.setItem(id + '-original', text);
+        }
+        function saveOriginalText(id, text) {
+            sessionStorage.setItem(id + '-original', text);
+        }
+
+        function getOriginalText(id) {
+            return sessionStorage.getItem(id + '-original') || '';
+        }
+
+        // Add event listeners for input validation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Caesar cipher validation
+            document.getElementById('caesar-text').addEventListener('input', function() {
+                const text = this.value.trim();
+                const key = document.getElementById('caesar-key').value.trim();
+                document.getElementById('caesar-encrypt').disabled = !text || !key;
+            });
+            
+            document.getElementById('caesar-key').addEventListener('input', function() {
+                const text = document.getElementById('caesar-text').value.trim();
+                const key = this.value.trim();
+                document.getElementById('caesar-encrypt').disabled = !text || !key;
+            });
+
+            // Affine cipher validation
+            document.getElementById('affine-text').addEventListener('input', function() {
+                const text = this.value.trim();
+                const key1 = document.getElementById('affine-key1').value.trim();
+                const key2 = document.getElementById('affine-key2').value.trim();
+                document.getElementById('affine-encrypt').disabled = !text || !key1 || !key2;
+            });
+            
+            ['affine-key1', 'affine-key2'].forEach(id => {
+                document.getElementById(id).addEventListener('input', function() {
+                    const text = document.getElementById('affine-text').value.trim();
+                    const key1 = document.getElementById('affine-key1').value.trim();
+                    const key2 = document.getElementById('affine-key2').value.trim();
+                    document.getElementById('affine-encrypt').disabled = !text || !key1 || !key2;
+                });
+            });
+
+            // Vigenere cipher validation
+            document.getElementById('vigenere-text').addEventListener('input', function() {
+                const text = this.value.trim();
+                const key = document.getElementById('vigenere-key').value.trim();
+                document.getElementById('vigenere-encrypt').disabled = !text || !key;
+            });
+            
+            document.getElementById('vigenere-key').addEventListener('input', function() {
+                const text = document.getElementById('vigenere-text').value.trim();
+                const key = this.value.trim();
+                document.getElementById('vigenere-encrypt').disabled = !text || !key;
+            });
+        });
+
+        // Add validation for keys
+        function validateKeys() {
+            // Caesar key validation
+            document.getElementById('caesar-key').addEventListener('input', function() {
+                let value = parseInt(this.value);
+                if (value < 0) {
+                    this.value = 0;
+                } else if (value > 25) {
+                    this.value = 25;
+                }
+            });
+
+            // Affine key validation
+            document.getElementById('affine-key1').addEventListener('input', function() {
+                let value = parseInt(this.value);
+                if (value < 1) {
+                    this.value = 1;
+                } else if (value > 25) {
+                    this.value = 25;
+                }
+                // Ensure key is coprime with 26
+                if (value % 2 === 0 || value % 13 === 0) {
+                    this.value = findNextCoprime(value);
+                }
+            });
+
+            document.getElementById('affine-key2').addEventListener('input', function() {
+                let value = parseInt(this.value);
+                if (value < 0) {
+                    this.value = 0;
+                } else if (value > 25) {
+                    this.value = 25;
+                }
+            });
+        }
+
+        function findNextCoprime(num) {
+            while (num <= 25) {
+                if (gcd(num, 26) === 1) {
+                    return num;
+                }
+                num++;
+            }
+            return 1;
+        }
+
+        function gcd(a, b) {
+            return b === 0 ? a : gcd(b, a % b);
+        }
+
+        // Call validation setup when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            validateKeys();
+        });
+    </script>
+</body>
+</html>
